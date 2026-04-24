@@ -160,57 +160,51 @@ def ia_diagnostic_reseau(zone, debit_moy, pression_moy, perte_moy, nb_anomalies)
     eau_economisable = round(debit_moy * perte_moy / 100 * 24 * 30 * 0.7)
     co2_estime = round(eau_economisable * 0.0003, 2)
 
-    rapport = f"""## 🤖 Diagnostic Agent IA — {zone}
+    # Pre-compute conditionals to avoid apostrophe conflicts inside f-strings
+    eval_debit = "Normal" if 100 < debit_moy < 140 else "Atypique"
+    eval_pression = "Normale" if 3.0 < pression_moy < 4.0 else "Hors plage"
+    eval_perte = "Eleve" if perte_moy > 15 else "Acceptable"
+    eval_anomalies = "Eleve" if nb_anomalies > 5 else ("Modere" if nb_anomalies > 2 else "Faible")
+    action1 = "Inspection urgence sur points de fuite" if perte_moy > 15 else "Controle preventif des jonctions"
+    delai1 = "Immediat (< 24h)" if perte_moy > 20 else "Sous 48h"
+    if pression_moy < 3.2:
+        pression_action = "Augmenter la pression"
+    elif pression_moy > 3.8:
+        pression_action = "Reduire la pression"
+    else:
+        pression_action = "Maintenir la pression actuelle"
 
-**Niveau d'alerte : {niveau}**
-
-{statut_msg}
-
----
-
-### 📊 Analyse des indicateurs
-
-| Indicateur | Valeur | Évaluation |
-|---|---|---|
-| Débit moyen | {debit_moy:.1f} m³/h | {'✅ Normal' if 100 < debit_moy < 140 else '⚠️ Atypique'} |
-| Pression moyenne | {pression_moy:.2f} bar | {'✅ Normale' if 3.0 < pression_moy < 4.0 else '⚠️ Hors plage'} |
-| Taux de perte | {perte_moy:.1f}% | {'🔴 Élevé' if perte_moy > 15 else '✅ Acceptable'} |
-| Anomalies détectées | {nb_anomalies} | {'🔴 Élevé' if nb_anomalies > 5 else '🟡 Modéré' if nb_anomalies > 2 else '✅ Faible'} |
-
----
-
-### ⚡ 3 Actions prioritaires
-
-**1. {'🚨 Inspection d'urgence sur points de fuite' if perte_moy > 15 else '🔍 Contrôle préventif des jonctions'}**
-   - Zone ciblée : {zone}
-   - Équipe recommandée : Équipe A (spécialisée fuites)
-   - Délai : {'Immédiat (< 24h)' if perte_moy > 20 else 'Sous 48h'}
-
-**2. 📉 Régulation de pression sur le réseau secondaire**
-   - {'Augmenter la pression' if pression_moy < 3.2 else 'Réduire la pression' if pression_moy > 3.8 else 'Maintenir la pression actuelle'}
-   - Impact estimé : réduction des pertes de 8 à 12%
-   - Délai : 2 à 3 jours ouvrés
-
-**3. 🔧 Remplacement des compteurs suspects**
-   - {nb_anomalies} compteurs à vérifier prioritairement
-   - Planifier avec Équipe B sur la semaine prochaine
-   - Réduction estimée des erreurs de mesure : 15%
-
----
-
-### 🌍 Impact environnemental estimé (si fuites réparées)
-
-- 💧 **Eau économisée** : ~{eau_economisable:,} m³/mois
-- 🌱 **CO₂ évité** : ~{co2_estime} tonnes/mois
-- ⏱️ **Délai de retour sur investissement** : 3 à 5 semaines
-
----
-
-### 📅 Recommandation planning
-
-Mobiliser **2 équipes** sur {zone} en priorité cette semaine.
-Commencer par les secteurs à plus fort débit (point de fuite probable), puis intervention systématique sur compteurs signalés.
-"""
+    rapport = (
+        f"## Diagnostic Agent IA — {zone}\n\n"
+        f"**Niveau alerte : {niveau}**\n\n"
+        f"{statut_msg}\n\n---\n\n"
+        "### Analyse des indicateurs\n\n"
+        "| Indicateur | Valeur | Evaluation |\n|---|---|---|\n"
+        f"| Debit moyen | {debit_moy:.1f} m3/h | {eval_debit} |\n"
+        f"| Pression moyenne | {pression_moy:.2f} bar | {eval_pression} |\n"
+        f"| Taux de perte | {perte_moy:.1f}% | {eval_perte} |\n"
+        f"| Anomalies detectees | {nb_anomalies} | {eval_anomalies} |\n\n---\n\n"
+        "### 3 Actions prioritaires\n\n"
+        f"**1. {action1}**\n"
+        f"   - Zone ciblee : {zone}\n"
+        "   - Equipe recommandee : Equipe A (specialisee fuites)\n"
+        f"   - Delai : {delai1}\n\n"
+        "**2. Regulation de pression sur le reseau secondaire**\n"
+        f"   - {pression_action}\n"
+        "   - Impact estime : reduction des pertes de 8 a 12%\n"
+        "   - Delai : 2 a 3 jours ouvres\n\n"
+        "**3. Remplacement des compteurs suspects**\n"
+        f"   - {nb_anomalies} compteurs a verifier prioritairement\n"
+        "   - Planifier avec Equipe B sur la semaine prochaine\n"
+        "   - Reduction estimee des erreurs de mesure : 15%\n\n---\n\n"
+        "### Impact environnemental estime (si fuites reparees)\n\n"
+        f"- Eau economisee : ~{eau_economisable:,} m3/mois\n"
+        f"- CO2 evite : ~{co2_estime} tonnes/mois\n"
+        "- Delai de retour sur investissement : 3 a 5 semaines\n\n---\n\n"
+        "### Recommandation planning\n\n"
+        f"Mobiliser 2 equipes sur {zone} en priorite cette semaine.\n"
+        "Commencer par les secteurs a plus fort debit, puis intervention sur compteurs signales.\n"
+    )
     return rapport
 
 
